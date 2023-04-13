@@ -5,28 +5,15 @@
 A website that helps you to keep track of ingredients in your house and gives you a meal suggestion based on the current ingredients you have in your inventory
 
 ### Home Page
-![Alt text](assets/documitaion/1-%20Home.jpg)
+<img width="698" alt="inventory" src="https://user-images.githubusercontent.com/125559748/231878857-0caeeabe-e70e-46aa-be02-2a182a15ebaa.png">
 
 here you receive a welcoming message and an option to get a meal suggestion based on your inventory
-### Modal for choosing ingreadients
+### My Fridge Page
+<img width="698" alt="inventory" src="https://user-images.githubusercontent.com/125559748/231878942-df79a72b-4933-490e-97ba-9d08ccc42a77.png">
 
 here you can see a list of ingredients you currently have plus you can edit the amount of each ingredient 
-
-![Alt text](assets/documitaion/2-%20Modal%20for%20choosing%20ingredients.jpg)
-
-If you are a first time user you will see this modal
-
-![Alt text](assets/documitaion/2.1-if%20first%20time%20user%20(conditional%20render%20).jpg)
-
-### home page-search result 
-![Alt text](assets/documitaion/3-%20search%20result.jpg)
-
-
-### step by step modal
-![Alt text](assets/documitaion/4-%20step%20by%20step%20modal.jpg)
-
-### My fridge (favourites)
-![Alt text](assets/documitaion/5-%20My%20fridge%20(favourites).jpg)
+### Search Page
+<img width="710" alt="search" src="https://user-images.githubusercontent.com/125559748/231879004-a37c8b8c-b1dc-4d8d-91a8-6fd62a990ace.png">
 
 ### search
 ![Alt text](assets/documitaion/6-%20Search.jpg)
