@@ -26,3 +26,6 @@ API we will be using:
    https://www.priceapi.com/
    
    sheeesh
+   
+   no 4
+   
