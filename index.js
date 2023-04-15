@@ -28,7 +28,7 @@ app.get('/TestRout', TestRoutHandler);
 
 //Routs
 app.get("/recipes", recipesHandler); //(you can delete the test rout after you make sure every thing is ok)
-
+app.get("/complexSearch", complexSearchHandler);
 
 
 
@@ -73,14 +73,65 @@ function recipesHandler(req, res){
 }
 
 
+function objectToQueryParams(obj) {
+    const params = Object.keys(obj)
+      .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(obj[key])}`)
+      .join('&');
+    return params;
+  }
+  
+
+
+  function objectToQueryParams(obj) {
+      const params = Object.keys(obj)
+        .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(obj[key])}`)
+        .join('&');
+      return params;
+    }
+    
+// send Parameters in body as JSON format
+function complexSearchHandler(req,res) {
+
+         
+        
+         
+    let url =`https://api.spoonacular.com/recipes/complexSearch?${objectToQueryParams(req.body)}&apiKey=${apikey}`
+
+    axios.get(url)
+    .then((result)=>{
+        console.log(result.data.results);
+
+        let dataRecipes = result.data.results.map((recipe)=>{
+            return new Recipe(recipe.id,recipe.title,recipe.image)
+        })
+        
+        res.json(dataRecipes);
+    })
+    .catch((err)=>{
+        console.log(err);
+    })
+
+
+
+
+
+
+
+} 
+
+
+
+
+
+
 
 
 
 
 //constructor
-function Recipe(title,time,image){
+function Recipe(id,title,image){
+    this.id=id;
     this.title=title;
-    this.time=time;
     this.image=image;
 }
 
