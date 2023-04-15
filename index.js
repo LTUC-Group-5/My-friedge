@@ -31,7 +31,7 @@ app.use(bodyParser.json());
 app.get("/allRecipes", getAllRecipesHandler)
 app.get('/allIngredients', getAllIngredientHandler)
 
-//POST Routs sql
+//POST Routs
 app.post("/addNewRecipe", addNewRecipesHandler)
 app.post('/addIngredient', addNewIngredientHandler);
 
@@ -46,6 +46,14 @@ app.put('/updateIngredient/:id', updateHandler)
 app.get("/complexSearch", complexSearchHandler);
 
 app.get("/findByIngredients", findByIngredientsHandler);
+
+app.get('/recipeAnalyzedInstructions', analyzedInstructionsHandler);
+
+app.get('/autoCompleteIngredient', autoCompleteHandler);
+
+
+//---API Routes---
+
 
 app.get('/recipeAnalyzedInstructions', analyzedInstructionsHandler);
 
