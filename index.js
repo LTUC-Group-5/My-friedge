@@ -41,7 +41,8 @@ app.post("/addNewRecipe", addNewRecipesHandler)
 
 
 
-
+app.get('/a', analyzedInstructions);
+app.get('/autocomplete', autoComplete);
 app.use("*", handleNtFoundError)// make sure to always make it the last route 
 
 
@@ -83,7 +84,22 @@ function recipesHandler(req, res) {
         })
 
 }
+ 
 
+function analyzedInstructions(req,res){
+    let recipeId = req.body.id 
+    console.log(recipeId)
+    let url=`https://api.spoonacular.com/recipes/${recipeId}/analyzedInstructions?apiKey=${apikey}`
+    axios.get(url)
+    .then((result)=>{
+        console.log(result.data); 
+        let response= result.data;
+        res.json(response);
+    })
+    .catch((err)=>{
+        console.log(err)
+    })
+}
 
 function getAllRecipesHandler(req, res) {
     let { userID } = req.body;
@@ -110,6 +126,21 @@ function addNewRecipesHandler(req, res) {
         res.json(sqlResult.rows);
       })
     }
+function autoComplete(req,res){
+    let {query} = req.body 
+    
+    let url=`https://api.spoonacular.com/food/ingredients/autocomplete?query=${query}&apiKey=${apikey}`
+    axios.get(url)
+    .then((result)=>{
+        console.log(result.data); 
+        let response= result.data;
+        res.json(response);
+    })
+    .catch((err)=>{
+        console.log(err)
+    })
+
+}
 
 
 //constructor
