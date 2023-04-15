@@ -1,21 +1,35 @@
 'use strict';
 const express = require('express')
-const cors = require('cors');
+var cors = require('cors');
 const axios = require('axios');
+const { request } = require('express');
 require('dotenv').config();
+const { Client } = require('pg')
 const app = express();
 app.use(cors());
+const bodyParser = require('body-parser')
 const PORT = process.env.PORT;
 const apikey=process.env.API_KEY
+const dataBaseUrl=process.env.DATABASE_URL 
+const client = new Client(process.env.DATABASE_URL)
+app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.json());
+
+//postgres://username:sudo password@localhost:5432/database name
+//postgres://ibraheem:0000@localhost:5432/movies
 
 //create your .env file
 
 
-//http://localhost:3006/TestRout (you can delete the test rout after you make sure every thing is ok)
+
+
+//http://localhost:portnumber/TestRout (you can delete the test rout after you make sure every thing is ok)
 app.get('/TestRout', TestRoutHandler);
 
 //Routs
-app.get("/recipes", recipesHandler);
+app.get("/recipes", recipesHandler); //(you can delete the test rout after you make sure every thing is ok)
+
+
 
 
 
@@ -24,9 +38,6 @@ app.get("/recipes", recipesHandler);
 
 
 app.use("*", handleNtFoundError)// make sure to always make it the last route 
-
-
-
 
 
 
@@ -56,10 +67,14 @@ function recipesHandler(req, res){
         res.json(dataRecipes);
     })
     .catch((err)=>{
-        console.log(`${error}`);
+        console.log(err);
     })
 
 }
+
+
+
+
 
 
 //constructor
@@ -70,7 +85,17 @@ function Recipe(title,time,image){
 }
 
 
-//let it be at the end of your file
-app.listen(PORT, () => {
-    console.log(`Example app listening on port ${PORT}`)
-})
+
+
+
+
+
+client.connect().then(() => {
+
+    app.listen(PORT, () => {
+        console.log(`Server is listening ${PORT}`);
+    })
+    
+}).catch((err)=>{
+
+console.log(err)})
