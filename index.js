@@ -184,6 +184,7 @@ console.log(result)
     })
 
 }
+ 
 
 //Note:refactor + explain
 function findByIngredientsHandler(req, res) {
