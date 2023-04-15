@@ -20,8 +20,9 @@ app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json());
 
-//SQLEndPoints
-//GET Routs
+//---SQL Routes---
+
+//GET Routes
 app.get("/recipes", recipesHandler); //(you can delete the test rout after you make sure every thing is ok)
 app.get("/getAllRecipes", getAllRecipesHandler)
 app.get ('/allIngredient', allIngredientHandler)
@@ -34,15 +35,16 @@ app.post('/addIngredient', addNewIngredientHandler);
 app.put('/updateIngredient/:id',updateHandler)
 
 
-// API Routs
-//GET Routs
+//---API Routes---
+
+//GET Routes
 app.get("/complexSearch", complexSearchHandler);
 app.get("/findByIngredients", findByIngredientsHandler);
 
-//Error Handler Routs
+//Error Handler Routes
 app.use("*", handleNtFoundError)// make sure to always make it the last route 
 
-//SQL Functions
+//---SQL Functions---
 
 //GET Functions
 function getAllRecipesHandler(req, res) {
@@ -110,21 +112,18 @@ function updateHandler(req,res){
         res.send(result.rows)
     }).catch()}
 
-//API Functions
+
+//---API Functions---
 
 //GET Functions
 
 function findByIngredientsHandler(req,res) {
-req.body = [{"items": ["cheese", "flour", "tomato"], "number": 3}]
 
+// req.body = [{"items": ["cheese", "flour", "tomato"], "number": 3}];
     let url = `https://api.spoonacular.com/recipes/findByIngredients?ingredients=${formatDataToPattern(req.body)}&apiKey=${apikey}`;
     
     axios.get(url)
-    .then((result)=>{
-
-        // let dataRecipes = result.data.results.map((recipe)=>{
-        //     return new Recipe(recipe.id,recipe.title,recipe.image)
-        // })    
+    .then((result)=>{   
         res.json(result.data);
     })    
     .catch((err)=>{
