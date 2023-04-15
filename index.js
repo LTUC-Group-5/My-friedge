@@ -27,87 +27,94 @@ app.use(bodyParser.json());
 
 //---SQL Routes---
 
-//GET Routes sql
+//GET Routes
 app.get("/allRecipes", getAllRecipesHandler)
-app.get ('/allIngredients', allIngredientHandler)
+app.get('/allIngredients', getAllIngredientHandler)
 
-//POST Routs sql
+//POST Routs
 app.post("/addNewRecipe", addNewRecipesHandler)
 app.post('/addIngredient', addNewIngredientHandler);
 
-//PUT Routs sql
-app.put('/updateIngredient/:id',updateHandler)
-
-//GET Routs api
-
-app.get('/recipeAnalyzedInstructions', analyzedInstructionsHandler);
-
-app.get('/AutoComplete', autoCompleteHandler);
-
-
-
-app.use("*", notFoundErrorHandler)// make sure to always make it the last route 
+//PUT Routs
+app.put('/updateIngredient/:id', updateHandler)
 
 
 //---API Routes---
 
+
 //GET Routes
 app.get("/complexSearch", complexSearchHandler);
+
 app.get("/findByIngredients", findByIngredientsHandler);
 
+app.get('/recipeAnalyzedInstructions', analyzedInstructionsHandler);
+
+app.get('/autoCompleteIngredient', autoCompleteHandler);
+
+
+//---API Routes---
+
+
 //Error Handler Routes
-app.use("*", handleNtFoundError)// make sure to always make it the last route 
+app.use("*", notFoundErrorHandler)// make sure to always make it the last route 
+
 
 //---SQL Functions---
 
+
 //GET Functions
 function getAllRecipesHandler(req, res) {
+
     let { userID } = req.body;
-    let query = `select * from ${recipes_table} where userID=${userID}`;
-    client.query(query)
-        .then((queryRes) => {
-            res.json(queryRes.rows)
-        })
-        .catch((err) => {
-            serverErrorHadnler(req, res, err);
-        })
+    let values = [userID];
+    let query = `select * from ${recipes_table} where userID=$1`;
+
+    client.query(query, values, (error, sqlResult) => {
+        if (error) {
+            serverErrorHadnler(req, res, error);
+        }
+        else
+            res.json(sqlResult.rows);
+    })
 }
+function getAllIngredientHandler(req, res) {
 
-    function allIngredientHandler(req, res) {
     let { userID } = req.body;
-    let query= `SELECT * from favorite_ingredient where userID=${userID}`;
+    let query = `SELECT * from favorite_ingredient where userID=${userID}`;
 
-    client.query(query).then((result)=> {
-        console.log(result);
-         res.json(result.rows);
-    }).catch(
-       
-    );
+    client.query(query, values, (error, sqlResult) => {
+        if (error) {
+            serverErrorHadnler(req, res, error);
+        }
+        else
+            res.json(sqlResult.rows);
+    })
 }
 
 //POST Functions
 function addNewRecipesHandler(req, res) {
+
     let { id, title, item_image, userID } = req.body;
     let values = [id, title, item_image, userID];
     let query = `INSERT INTO ${recipes_table} (id, title, item_image,userID)
         VALUES ($1,$2,$3,$4) returning *`;
+
     client.query(query, values, (error, sqlResult) => {
         if (error) {
-            serverErrorHadnler(req,res,error);
+            serverErrorHadnler(req, res, error);
         }
         else
-        res.json(sqlResult.rows);
-      })
-    }
-
+            res.json(sqlResult.rows);
+    })
+}
 function addNewIngredientHandler(req, res) {
     console.log(req.body);
 
-    let {item_name,item_image,quantity,id} = req.body;
+    let { item_name, item_image, quantity, id } = req.body;
 
-    let sql =`INSERT INTO "favorite_ingredient"(item_name,item_image,quantity,id) VALUES($1,$2,$3,$4) RETURNING *`;
-    let values = [item_name,item_image,quantity,id];
-    client.query(sql, values).then((result)=> {
+    let sql = `INSERT INTO "favorite_ingredient"(item_name,item_image,quantity,id) VALUES($1,$2,$3,$4) RETURNING *`;
+    let values = [item_name, item_image, quantity, id];
+    client.query(sql, values).then((result) => {
         console.log(result);
         res.status(201).json(result.rows);
     }).catch();
@@ -115,108 +122,25 @@ function addNewIngredientHandler(req, res) {
 }
 
 //PUT Functions
-function updateHandler(req,res){
-    let {quantity,id,userID} = req.body;
+function updateHandler(req, res) {
+    let { quantity, id, userID } = req.body;
+    let sql = `UPDATE favorite_ingredient SET quantity=$1  WHERE id=$2 and userID=$3 RETURNING *`;
+    let values = [quantity, id, userID];
 
-    let sql =`UPDATE favorite_ingredient SET quantity=$1  WHERE id=$2 and userID=$3 RETURNING *`;
-    let values = [quantity,id,userID];
-    
-    client.query(sql,values).then(result=>{
+    client.query(sql, values).then(result => {
         console.log(result.rows);
         res.send(result.rows)
-    }).catch()}
+    }).catch()
+}
+
+
+//---SQL Functions---
 
 
 //---API Functions---
 
+
 //GET Functions
-
-function findByIngredientsHandler(req,res) {
-
-// req.body = [{"items": ["cheese", "flour", "tomato"], "number": 3}];
-    let url = `https://api.spoonacular.com/recipes/findByIngredients?ingredients=${formatDataToPattern(req.body)}&apiKey=${apikey}`;
-    
-    axios.get(url)
-    .then((result)=>{   
-        res.json(result.data);
-    })    
-    .catch((err)=>{
-        console.log(err);
-    }) 
-    
-    // send Parameters in body as JSON format    
-function complexSearchHandler(req,res) {
-    let url =`https://api.spoonacular.com/recipes/complexSearch?${objectToQueryParams(req.body)}&apiKey=${apikey}`
-
-    axios.get(url)
-    .then((result)=>{
-        console.log(result.data.results);
-
-        let dataRecipes = result.data.results.map((recipe)=>{
-            return new Recipe(recipe.id,recipe.title,recipe.image)
-        })    
-        res.json(dataRecipes);
-    })    
-    .catch((err)=>{
-        console.log(err);
-    })    
-} 
-
-//Error Handler
-function serverErrorHadnler(req, res, err = "Sorry, something went wrong") {
-    res.status(500).send({
-        "status": 500,
-        "response": err
-    });
-    console.log(err);
-}
-
-function handleNtFoundError(req, res){ 
-    res.status(404).send("Rout not found") 
-}    
-
-//constructor
-function Recipe(title, time, image) {
-            this.title = title;
-            this.time = time;
-            this.image = image;
-        }
-
- //Helper
-  function objectToQueryParams(obj) {
-      const params = Object.keys(obj)
-        .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(obj[key])}`)
-        .join('&');
-      return params;  
-    } 
-    
-
-
-function formatDataToPattern(data) {
-    const items = data[0].items.map((item, index) => {
-      return index === 0 ? item : `+${item}`;
-    }).join(",");
-    const number = data[0].number;
-    return `${items}&number=${number}`;
-  }
-    
-
-//general functions
-
-function notFoundErrorHandler(req, res) {
-    res.status(404).send("Route not found")
-}
-
-function serverErrorHadnler(req, res, error = "Sorry, something went wrong") {
-    res.status(500).send({
-        "status": 500,
-        "response": error
-    });
-    console.log(error);
-}
-
-//API Handlers
-
 function analyzedInstructionsHandler(req, res) {
 
     let url = `https://api.spoonacular.com/recipes/${qureyString.stringify(req.body)}/analyzedInstructions?apiKey=${apikey}`;
@@ -246,35 +170,69 @@ function autoCompleteHandler(req, res) {
 
 }
 
-//SQL Handlers
+//Note:refactor + explain
+function findByIngredientsHandler(req, res) {
 
-function getAllRecipesHandler(req, res) {
+    // req.body = [{"items": ["cheese", "flour", "tomato"], "number": 3}];
+    let url = `https://api.spoonacular.com/recipes/findByIngredients?ingredients=${formatDataToPattern(req.body)}&apiKey=${apikey}`;
 
-    let { userID } = req.body;
-    let values = [userID];
-    let query = `select * from ${recipes_table} where userID=$1`;
-    client.query(query, values, (error, sqlResult) => {
-        if (error) {
-            serverErrorHadnler(req, res, error);
-        }
-        else
-            res.json(sqlResult.rows);
-    })
+    axios.get(url)
+        .then((result) => {
+            res.json(result.data);
+        })
+        .catch((err) => {
+            console.log(err);
+        })
+}
+//Note:refactor + explain
+function complexSearchHandler(req, res) {
+    let url = `https://api.spoonacular.com/recipes/complexSearch?${objectToQueryParams(req.body)}&apiKey=${apikey}`
+
+    axios.get(url)
+        .then((result) => {
+            console.log(result.data.results);
+
+            let dataRecipes = result.data.results.map((recipe) => {
+                return new Recipe(recipe.id, recipe.title, recipe.image)
+            })
+            res.json(dataRecipes);
+        })
+        .catch((err) => {
+            console.log(err);
+        })
 }
 
-function addNewRecipesHandler(req, res) {
 
-    let { id, title, item_image, userID } = req.body;
-    let values = [id, title, item_image, userID];
-    let query = `INSERT INTO ${recipes_table} (id, title, item_image,userID)
-        VALUES ($1,$2,$3,$4) returning *`;
-    client.query(query, values, (error, sqlResult) => {
-        if (error) {
-            serverErrorHadnler(req, res, error);
-        }
-        else
-            res.json(sqlResult.rows);
-    })
+//---API Functions---
+
+
+//Error Handlers
+function serverErrorHadnler(req, res, error = "Sorry, something went wrong") {
+    res.status(500).send({
+        "status": 500,
+        "response": error
+    });
+    console.log(error);
+}
+
+function notFoundErrorHandler(req, res) {
+    res.status(404).send("Rout not found")
+}
+
+//Helper
+function objectToQueryParams(obj) {
+    const params = Object.keys(obj)
+        .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(obj[key])}`)
+        .join('&');
+    return params;
+}
+
+function formatDataToPattern(data) {
+    const items = data[0].items.map((item, index) => {
+        return index === 0 ? item : `+${item}`;
+    }).join(",");
+    const number = data[0].number;
+    return `${items}&number=${number}`;
 }
 
 //server start section
