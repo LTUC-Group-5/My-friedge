@@ -15,22 +15,10 @@ const client = new Client(process.env.DATABASE_URL)
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json());
 
-//postgres://username:sudo password@localhost:5432/database name
-//postgres://ibraheem:0000@localhost:5432/movies
-
-//create your .env file
-
-
-
-
-//http://localhost:portnumber/TestRout (you can delete the test rout after you make sure every thing is ok)
-app.get('/TestRout', TestRoutHandler);
-
 //Routs
-app.get("/recipes", recipesHandler); //(you can delete the test rout after you make sure every thing is ok)
+
 app.get("/complexSearch", complexSearchHandler);
-
-
+app.get("/findByIngredients", findByIngredientsHandler);
 
 
 
@@ -44,52 +32,67 @@ app.use("*", handleNtFoundError)// make sure to always make it the last route
 
 
 //Functions
-function TestRoutHandler(req, res) {   //(you can delete the TestRoutHandler function  after you make sure every thing is ok)
-    res.send("The server is alive")
-}
 
 function handleNtFoundError(req, res){ 
     res.status(404).send("Rout not found") 
-}
+}    
 
 
-function recipesHandler(req, res){
-    
-    let url = `https://api.spoonacular.com/recipes/random?apiKey=${apikey}`;
-    axios.get(url)
-    .then((result)=>{
-        console.log(result.data.recipes);
-
-        let dataRecipes = result.data.recipes.map((recipe)=>{
-            return new Recipe(recipe.title, recipe.readyInMinutes,recipe.image)
-        })
-        
-        res.json(dataRecipes);
-    })
-    .catch((err)=>{
-        console.log(err);
-    })
-
-}
-
-
-function objectToQueryParams(obj) {
-    const params = Object.keys(obj)
-      .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(obj[key])}`)
-      .join('&');
-    return params;
+function formatDataToPattern(data) {
+    const items = data[0].items.map((item, index) => {
+      return index === 0 ? item : `+${item}`;
+    }).join(",");
+    const number = data[0].number;
+    return `${items}&number=${number}`;
   }
   
+  
+
+function findByIngredientsHandler(req,res) {
+
+req.body = [{"items": ["cheese", "flour", "tomato"], "number": 3}]
+
+
+    let url = `https://api.spoonacular.com/recipes/findByIngredients?ingredients=${formatDataToPattern(req.body)}&apiKey=${apikey}`;
+    
+    
+    axios.get(url)
+    .then((result)=>{
+        
+
+        // let dataRecipes = result.data.results.map((recipe)=>{
+        //     return new Recipe(recipe.id,recipe.title,recipe.image)
+        // })    
+        res.json(result.data);
+    })    
+    .catch((err)=>{
+        console.log(err);
+    })    
+
+    
+    
+
+
+ }      
+
+
+
+
+
+
+
+
+
 
 
   function objectToQueryParams(obj) {
       const params = Object.keys(obj)
         .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(obj[key])}`)
         .join('&');
-      return params;
-    }
+      return params;  
+    }  
     
-// send Parameters in body as JSON format
+// send Parameters in body as JSON format    
 function complexSearchHandler(req,res) {
 
          
@@ -103,21 +106,20 @@ function complexSearchHandler(req,res) {
 
         let dataRecipes = result.data.results.map((recipe)=>{
             return new Recipe(recipe.id,recipe.title,recipe.image)
-        })
+        })    
         
         res.json(dataRecipes);
-    })
+    })    
     .catch((err)=>{
         console.log(err);
-    })
+    })    
+
+}     
 
 
 
 
 
-
-
-} 
 
 
 
