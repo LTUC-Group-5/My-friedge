@@ -28,10 +28,9 @@ app.get('/TestRout', TestRoutHandler);
 
 //Routs
 app.get("/recipes", recipesHandler); //(you can delete the test rout after you make sure every thing is ok)
-
-
-
-
+app.get("/ingredients/autocomplete", ingredientsAutocomplete );
+app.delete('/deleteRecipes', deleteRecipes)
+app.delete('/deleteIngredient', deleteIngredient)
 
 
 
@@ -71,11 +70,44 @@ function recipesHandler(req, res){
     })
 
 }
+function ingredientsAutocomplete(req, res){
+     let ingredientsName = "appl"
+    let url = `https://api.spoonacular.com/food/ingredients/autocomplete?query=${ingredientsName}&apiKey=${apikey}`;
+    axios.get(url)
+    .then((result)=>{
+        
+console.log(result)
+        res.json(result.data); 
+    })
+
+    .catch((err)=>{
+        console.log(err);
+    })
+
+}
 
 
+function deleteRecipes(req,res){
+    let {id} = req.body; 
+    let { userID } = req.body;
+    let sql=`DELETE FROM favorite_recipe WHERE id = $1 AND userID = $2 RETURNING *;`;
+    let value = [id,userID];
+    client.query(sql,value).then(result=>{
+         res.status(204).send("deleted");
+        res.json(result.rows)
+    }).catch()
+}
 
-
-
+function deleteIngredient(req,res){
+    let {id} = req.body; 
+    let { userID } = req.body;
+    let sql=`DELETE FROM favorite_ingredient WHERE id = $1 AND userID = $2 RETURNING *;`;
+    let value = [id,userID];
+    client.query(sql,value).then(result=>{
+        res.status(204).send("deleted");
+        res.json(result.rows)
+    }).catch()
+}
 
 //constructor
 function Recipe(title,time,image){
@@ -83,10 +115,6 @@ function Recipe(title,time,image){
     this.time=time;
     this.image=image;
 }
-
-
-
-
 
 
 
