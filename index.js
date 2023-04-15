@@ -25,7 +25,6 @@ app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-
 //---SQL Routes---
 //GET Routes
 app.get("/allRecipes", getAllRecipesHandler);
@@ -39,15 +38,17 @@ app.post('/addIngredient', addNewIngredientHandler);
 app.put('/updateIngredient/:id', updateHandler);
 
 //DELETE Routs
+
 app.delete('/deleteRecipes', deleteRecipesHandler);
 app.delete('/deleteIngredient', deleteIngredientHandler);
-
 
 //---API Routes---
 //GET Routes
 app.get("/complexSearch", complexSearchHandler);
 
 app.get("/findByIngredients", findByIngredientsHandler);
+app.get("/ingredients/autocomplete", ingredientsAutocomplete );
+
 
 app.get('/recipeAnalyzedInstructions', analyzedInstructionsHandler);
 
@@ -219,6 +220,7 @@ function findByIngredientsHandler(req, res) {
     let url = `https://api.spoonacular.com/recipes/findByIngredients?ingredients=${formatDataToPattern(req.body)}&apiKey=${apikey}`;
 
     axios.get(url)
+
         .then((result) => {
             res.json(result.data);
         })
@@ -240,8 +242,6 @@ function complexSearchHandler(req, res) {
         })
 }
 
-
-
 //---API Functions---
 
 
@@ -260,6 +260,7 @@ function notFoundErrorHandler(req, res) {
 
 //Helper
 function formatDataToPattern(data) {
+
     const items = data[0].items.map((item, index) => {
         return index === 0 ? item : `+${item}`;
     }).join(",");
