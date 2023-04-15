@@ -31,7 +31,7 @@ app.use(bodyParser.json());
 app.get("/allRecipes", getAllRecipesHandler)
 app.get('/allIngredients', getAllIngredientHandler)
 
-//POST Routs
+//POST Routs sql
 app.post("/addNewRecipe", addNewRecipesHandler)
 app.post('/addIngredient', addNewIngredientHandler);
 
