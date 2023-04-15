@@ -25,6 +25,8 @@ app.use(bodyParser.json());
 app.get("/recipes", recipesHandler); //(you can delete the test rout after you make sure every thing is ok)
 app.get("/getAllRecipes", getAllRecipesHandler)
 app.get ('/allIngredient', allIngredientHandler)
+app.get('/a', analyzedInstructions);
+app.get('/autocomplete', autoComplete);
 
 //POST Routs
 app.post("/addNewRecipe", addNewRecipesHandler)
@@ -56,6 +58,38 @@ function getAllRecipesHandler(req, res) {
             serverErrorHadnler(req, res, err);
         })
 }
+
+function analyzedInstructions(req,res){
+    let recipeId = req.body.id 
+    console.log(recipeId)
+    let url=`https://api.spoonacular.com/recipes/${recipeId}/analyzedInstructions?apiKey=${apikey}`
+    axios.get(url)
+    .then((result)=>{
+        console.log(result.data); 
+        let response= result.data;
+        res.json(response);
+    })
+    .catch((err)=>{
+        console.log(err)
+    })
+}
+
+function autoComplete(req,res){
+    let {query} = req.body 
+    
+    let url=`https://api.spoonacular.com/food/ingredients/autocomplete?query=${query}&apiKey=${apikey}`
+    axios.get(url)
+    .then((result)=>{
+        console.log(result.data); 
+        let response= result.data;
+        res.json(response);
+    })
+    .catch((err)=>{
+        console.log(err)
+    })
+
+}
+
 
     function allIngredientHandler(req, res) {
     let { userID } = req.body;
@@ -129,6 +163,9 @@ req.body = [{"items": ["cheese", "flour", "tomato"], "number": 3}]
     })    
     .catch((err)=>{
         console.log(err);
+    })
+
+}
     }) 
     
     // send Parameters in body as JSON format    
