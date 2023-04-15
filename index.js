@@ -19,10 +19,10 @@ const dataBaseUrl = process.env.DATABASE_URL;
 const ingredients_table = process.env.INGREDIENT_TABLE;
 const recipes_table = process.env.RECIPE_TABLE;
 
-const client = new Client(process.env.DATABASE_URL)
+const client = new Client(dataBaseUrl);
 //app useages
 app.use(cors());
-app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 
@@ -36,7 +36,11 @@ app.post("/addNewRecipe", addNewRecipesHandler);
 app.post('/addIngredient', addNewIngredientHandler);
 
 //PUT Routs
-app.put('/updateIngredient/:id', updateHandler)
+app.put('/updateIngredient/:id', updateHandler);
+
+//DELETE Routs
+app.delete('/deleteRecipes', deleteRecipesHandler);
+app.delete('/deleteIngredient', deleteIngredientHandler);
 
 
 //---API Routes---
@@ -207,26 +211,8 @@ function autoCompleteHandler(req, res) {
         .catch((error) => {
             serverErrorHadnler(req, res, error);
         })
-
 }
-function ingredientsAutocomplete(req, res){
-     let ingredientsName = "appl"
-    let url = `https://api.spoonacular.com/food/ingredients/autocomplete?query=${ingredientsName}&apiKey=${apikey}`;
-    axios.get(url)
-    .then((result)=>{
-        
-console.log(result)
-        res.json(result.data); 
-    })
 
-    .catch((err)=>{
-        console.log(err);
-    })
-
-}
- 
-
-//Note:refactor + explain
 function findByIngredientsHandler(req, res) {
 
     // req.body = [{"items": ["cheese", "flour", "tomato"], "number": 3}];
@@ -241,7 +227,6 @@ function findByIngredientsHandler(req, res) {
         })
 }
 
-//Note:refactor + explain
 function complexSearchHandler(req, res) {
     let url = `https://api.spoonacular.com/recipes/complexSearch?${qureyString.stringify(req.body)}&apiKey=${apikey}`
 
