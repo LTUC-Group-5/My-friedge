@@ -15,30 +15,46 @@ const client = new Client(process.env.DATABASE_URL)
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json());
 
-//postgres://username:sudo password@localhost:5432/database name
-//postgres://ibraheem:0000@localhost:5432/movies
+//Routs
 
-//create your .env file
-
-
-
-
+app.get("/complexSearch", complexSearchHandler);
+app.get("/findByIngredients", findByIngredientsHandler);
 app.post('/addIngredient', addNewIngredientHandler);
 app.get ('/allIngredient', allIngredientHandler)
 app.put('/updateIngredient/:id',updateHandler)
 
-
-
-
-
-
-
-
 app.use("*", handleNtFoundError)// make sure to always make it the last route 
 
+//Functions
 
+function handleNtFoundError(req, res){ 
+    res.status(404).send("Rout not found") 
+}    
 
+function formatDataToPattern(data) {
+    const items = data[0].items.map((item, index) => {
+      return index === 0 ? item : `+${item}`;
+    }).join(",");
+    const number = data[0].number;
+    return `${items}&number=${number}`;
+  }
 
+function findByIngredientsHandler(req,res) {
+req.body = [{"items": ["cheese", "flour", "tomato"], "number": 3}]
+
+    let url = `https://api.spoonacular.com/recipes/findByIngredients?ingredients=${formatDataToPattern(req.body)}&apiKey=${apikey}`;
+    
+    axios.get(url)
+    .then((result)=>{
+
+        // let dataRecipes = result.data.results.map((recipe)=>{
+        //     return new Recipe(recipe.id,recipe.title,recipe.image)
+        // })    
+        res.json(result.data);
+    })    
+    .catch((err)=>{
+        console.log(err);
+    })    
 
 //Functions
 function addNewIngredientHandler(req, res) {
@@ -55,7 +71,6 @@ function addNewIngredientHandler(req, res) {
 
 }
 
-
 function allIngredientHandler(req, res) {
     let { userID } = req.body;
     let query= `SELECT * from favorite_ingredient where userID=${userID}`;
@@ -69,73 +84,54 @@ function allIngredientHandler(req, res) {
 }
 
 function updateHandler(req,res){
-    
     let {quantity,id,userID} = req.body;
-    
 
     let sql =`UPDATE favorite_ingredient SET quantity=$1  WHERE id=$2 and userID=$3 RETURNING *`;
     let values = [quantity,id,userID];
-   
     
     client.query(sql,values).then(result=>{
         console.log(result.rows);
         res.send(result.rows)
     }).catch()}
 
-
-
-
-
-
-
-
-
-
-
 function handleNtFoundError(req, res){ 
     res.status(404).send("Rout not found") 
 }
-
-
-function recipesHandler(req, res){
+ }   
+ 
+  function objectToQueryParams(obj) {
+      const params = Object.keys(obj)
+        .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(obj[key])}`)
+        .join('&');
+      return params;  
+    }  
     
-    let url = `https://api.spoonacular.com/recipes/random?apiKey=${apikey}`;
+// send Parameters in body as JSON format    
+function complexSearchHandler(req,res) {
+    let url =`https://api.spoonacular.com/recipes/complexSearch?${objectToQueryParams(req.body)}&apiKey=${apikey}`
+
     axios.get(url)
     .then((result)=>{
-        console.log(result.data.recipes);
+        console.log(result.data.results);
 
-        let dataRecipes = result.data.recipes.map((recipe)=>{
-            return new Recipe(recipe.title, recipe.readyInMinutes,recipe.image)
-        })
-        
+        let dataRecipes = result.data.results.map((recipe)=>{
+            return new Recipe(recipe.id,recipe.title,recipe.image)
+        })    
         res.json(dataRecipes);
-    })
+    })    
     .catch((err)=>{
         console.log(err);
-    })
-
-}
-
-
-
-
-
-
+    })    
+}     
 //constructor
-function Recipe(title,time,image){
+
+function Recipe(id,title,image){
+    this.id=id;
     this.title=title;
-    this.time=time;
     this.image=image;
 }
 
-
-
-
-
-
-
 client.connect().then(() => {
-
     app.listen(PORT, () => {
         console.log(`Server is listening ${PORT}`);
     })
