@@ -25,14 +25,14 @@ app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json());
 
-//---SQL Routes---
 
+//---SQL Routes---
 //GET Routes
-app.get("/allRecipes", getAllRecipesHandler)
-app.get('/allIngredients', getAllIngredientHandler)
+app.get("/allRecipes", getAllRecipesHandler);
+app.get('/allIngredients', getAllIngredientHandler);
 
 //POST Routs
-app.post("/addNewRecipe", addNewRecipesHandler)
+app.post("/addNewRecipe", addNewRecipesHandler);
 app.post('/addIngredient', addNewIngredientHandler);
 
 //PUT Routs
@@ -40,8 +40,6 @@ app.put('/updateIngredient/:id', updateHandler)
 
 
 //---API Routes---
-
-
 //GET Routes
 app.get("/complexSearch", complexSearchHandler);
 
@@ -58,8 +56,6 @@ app.get('/autoCompleteIngredient', autoCompleteHandler);
 app.get('/recipeAnalyzedInstructions', analyzedInstructionsHandler);
 
 app.get('/autoCompleteIngredient', autoCompleteHandler);
-
-
 //---API Routes---
 
 
@@ -85,6 +81,7 @@ function getAllRecipesHandler(req, res) {
             res.json(sqlResult.rows);
     })
 }
+
 function getAllIngredientHandler(req, res) {
 
     let { userID } = req.body;
@@ -96,6 +93,35 @@ function getAllIngredientHandler(req, res) {
         }
         else
             res.json(sqlResult.rows);
+    })
+}
+
+//DELETE Functions
+function deleteRecipesHandler(req, res) {
+    let { userID, id } = req.body;
+    let query = `DELETE FROM ${recipes_table} WHERE id = $1 AND userID = $2 RETURNING *`;
+    let values = [id, userID];
+
+    client.query(query, values, (error, sqlResult) => {
+        if (error) {
+            serverErrorHadnler(req, res, error);
+        }
+        else
+            res.status(204).json(sqlResult.rows);
+    })
+}
+
+function deleteIngredientHandler(req, res) {
+    let { userID, id } = req.body;
+    let query = `DELETE FROM ${ingredients_table} WHERE id = $1 AND userID = $2 RETURNING *`;
+    let values = [id, userID];
+
+    client.query(query, values, (error, sqlResult) => {
+        if (error) {
+            serverErrorHadnler(req, res, error);
+        }
+        else
+            res.status(204).json(sqlResult.rows);
     })
 }
 
@@ -115,30 +141,38 @@ function addNewRecipesHandler(req, res) {
             res.json(sqlResult.rows);
     })
 }
+
 function addNewIngredientHandler(req, res) {
     console.log(req.body);
 
     let { item_name, item_image, quantity, id } = req.body;
 
-    let sql = `INSERT INTO "favorite_ingredient"(item_name,item_image,quantity,id) VALUES($1,$2,$3,$4) RETURNING *`;
+    let query = `INSERT INTO ${ingredients_table} (item_name,item_image,quantity,id) VALUES($1,$2,$3,$4) RETURNING *`;
     let values = [item_name, item_image, quantity, id];
-    client.query(sql, values).then((result) => {
-        console.log(result);
-        res.status(201).json(result.rows);
-    }).catch();
+
+    client.query(query, values, (error, sqlResult) => {
+        if (error) {
+            serverErrorHadnler(req, res, error);
+        }
+        else
+            res.json(sqlResult.rows);
+    })
 
 }
 
 //PUT Functions
 function updateHandler(req, res) {
     let { quantity, id, userID } = req.body;
-    let sql = `UPDATE favorite_ingredient SET quantity=$1  WHERE id=$2 and userID=$3 RETURNING *`;
+    let query = `UPDATE ${ingredients_table} SET quantity=$1  WHERE id=$2 and userID=$3 RETURNING *`;
     let values = [quantity, id, userID];
 
-    client.query(sql, values).then(result => {
-        console.log(result.rows);
-        res.send(result.rows)
-    }).catch()
+    client.query(query, values, (error, sqlResult) => {
+        if (error) {
+            serverErrorHadnler(req, res, error);
+        }
+        else
+            res.json(sqlResult.rows);
+    })
 }
 
 
@@ -150,8 +184,7 @@ function updateHandler(req, res) {
 
 //GET Functions
 function analyzedInstructionsHandler(req, res) {
-
-    let url = `https://api.spoonacular.com/recipes/${qureyString.stringify(req.body)}/analyzedInstructions?apiKey=${apikey}`;
+    let url = `https://api.spoonacular.com/recipes/${req.body.id}/analyzedInstructions?apiKey=${apikey}`;
     axios.get(url)
         .then((result) => {
             console.log(result.data);
@@ -168,7 +201,6 @@ function autoCompleteHandler(req, res) {
     let url = `https://api.spoonacular.com/food/ingredients/autocomplete?${qureyString.stringify(req.body)}&apiKey=${apikey}`
     axios.get(url)
         .then((result) => {
-            console.log(result.data);
             let response = result.data;
             res.json(response);
         })
@@ -204,27 +236,25 @@ function findByIngredientsHandler(req, res) {
         .then((result) => {
             res.json(result.data);
         })
-        .catch((err) => {
-            console.log(err);
+        .catch((error) => {
+            serverErrorHadnler(req, res, error);
         })
 }
+
 //Note:refactor + explain
 function complexSearchHandler(req, res) {
-    let url = `https://api.spoonacular.com/recipes/complexSearch?${objectToQueryParams(req.body)}&apiKey=${apikey}`
+    let url = `https://api.spoonacular.com/recipes/complexSearch?${qureyString.stringify(req.body)}&apiKey=${apikey}`
 
     axios.get(url)
         .then((result) => {
-            console.log(result.data.results);
 
-            let dataRecipes = result.data.results.map((recipe) => {
-                return new Recipe(recipe.id, recipe.title, recipe.image)
-            })
-            res.json(dataRecipes);
+            res.json(result.data.results);
         })
-        .catch((err) => {
-            console.log(err);
+        .catch((error) => {
+            serverErrorHadnler(req, res, error);
         })
 }
+
 
 
 //---API Functions---
@@ -244,13 +274,6 @@ function notFoundErrorHandler(req, res) {
 }
 
 //Helper
-function objectToQueryParams(obj) {
-    const params = Object.keys(obj)
-        .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(obj[key])}`)
-        .join('&');
-    return params;
-}
-
 function formatDataToPattern(data) {
     const items = data[0].items.map((item, index) => {
         return index === 0 ? item : `+${item}`;
