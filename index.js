@@ -169,6 +169,21 @@ function autoCompleteHandler(req, res) {
         })
 
 }
+function ingredientsAutocomplete(req, res){
+     let ingredientsName = "appl"
+    let url = `https://api.spoonacular.com/food/ingredients/autocomplete?query=${ingredientsName}&apiKey=${apikey}`;
+    axios.get(url)
+    .then((result)=>{
+        
+console.log(result)
+        res.json(result.data); 
+    })
+
+    .catch((err)=>{
+        console.log(err);
+    })
+
+}
 
 //Note:refactor + explain
 function findByIngredientsHandler(req, res) {
