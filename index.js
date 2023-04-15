@@ -23,12 +23,9 @@ app.use(bodyParser.json());
 
 
 
-//http://localhost:portnumber/TestRout (you can delete the test rout after you make sure every thing is ok)
-app.get('/TestRout', TestRoutHandler);
-
-//Routs
-app.get("/recipes", recipesHandler); //(you can delete the test rout after you make sure every thing is ok)
-
+app.post('/addIngredient', addNewIngredientHandler);
+app.get ('/allIngredient', allIngredientHandler)
+app.put('/updateIngredient/:id',updateHandler)
 
 
 
@@ -44,9 +41,56 @@ app.use("*", handleNtFoundError)// make sure to always make it the last route
 
 
 //Functions
-function TestRoutHandler(req, res) {   //(you can delete the TestRoutHandler function  after you make sure every thing is ok)
-    res.send("The server is alive")
+function addNewIngredientHandler(req, res) {
+    console.log(req.body);
+
+    let {item_name,item_image,quantity,id} = req.body;
+
+    let sql =`INSERT INTO "favorite_ingredient"(item_name,item_image,quantity,id) VALUES($1,$2,$3,$4) RETURNING *`;
+    let values = [item_name,item_image,quantity,id];
+    client.query(sql, values).then((result)=> {
+        console.log(result);
+        res.status(201).json(result.rows);
+    }).catch();
+
 }
+
+
+function allIngredientHandler(req, res) {
+    let { userID } = req.body;
+    let query= `SELECT * from favorite_ingredient where userID=${userID}`;
+
+    client.query(query).then((result)=> {
+        console.log(result);
+         res.json(result.rows);
+    }).catch(
+       
+    );
+}
+
+function updateHandler(req,res){
+    
+    let {quantity,id,userID} = req.body;
+    
+
+    let sql =`UPDATE favorite_ingredient SET quantity=$1  WHERE id=$2 and userID=$3 RETURNING *`;
+    let values = [quantity,id,userID];
+   
+    
+    client.query(sql,values).then(result=>{
+        console.log(result.rows);
+        res.send(result.rows)
+    }).catch()}
+
+
+
+
+
+
+
+
+
+
 
 function handleNtFoundError(req, res){ 
     res.status(404).send("Rout not found") 
