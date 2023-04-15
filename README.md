@@ -62,6 +62,8 @@ for other routes see the API documentaion
 ###  React component tree
 ![Alt text](assets/documitaion/13-%20tree.jpg)
 
+###  git flow
+![Alt text](assets/documitaion/14-%20git%20flow.jpg)
 
 
 

@@ -8,7 +8,7 @@ app.use(cors());
 const PORT = process.env.PORT;
 const apikey=process.env.API_KEY
 
-
+//create your .env file
 
 
 //http://localhost:3006/TestRout (you can delete the test rout after you make sure every thing is ok)
