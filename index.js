@@ -36,20 +36,15 @@ app.get('/RecipeAnalyzedInstructions', analyzedInstructionsHandler);
 
 app.get('/AutoComplete', autoCompleteHandler);
 
+
 //POST Routs
 
 app.post("/NewRecipe", addNewRecipesHandler);
 
+app.post("/addNewRecipe", addNewRecipesHandler);
 
 
-//GET Routs
-app.get("/recipes", recipesHandler); //(you can delete the test rout after you make sure every thing is ok)
 
-app.get("/getAllRecipes", getAllRecipesHandler)
-
-//POST Routs
-
-app.post("/addNewRecipe", addNewRecipesHandler)
 
 //general functions
 
@@ -92,18 +87,6 @@ function autoCompleteHandler(req, res) {
         })
         .catch((err) => {
             console.log(err)
-        })
-}
-
-function getAllRecipesHandler(req, res) {
-    let { userID } = req.body;
-    let query = `select * from ${recipes_table} where userID=${userID}`;
-    client.query(query)
-        .then((queryRes) => {
-            res.json(queryRes.rows)
-        })
-        .catch((err) => {
-            serverErrorHadnler(req, res, err);
         })
 }
 
