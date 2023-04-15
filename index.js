@@ -35,11 +35,20 @@ app.post('/addIngredient', addNewIngredientHandler);
 //PUT Routs
 app.put('/updateIngredient/:id',updateHandler)
 
+//DELETE Routs
+app.delete('/deleteRecipes', deleteRecipes)
+app.delete('/deleteIngredient', deleteIngredient)
+
+//todo check recipesHandler
+
+
 
 // API Routs
 //GET Routs
 app.get("/complexSearch", complexSearchHandler);
 app.get("/findByIngredients", findByIngredientsHandler);
+app.get("/ingredients/autocomplete", ingredientsAutocomplete );
+
 
 //Error Handler Routs
 app.use("*", handleNtFoundError)// make sure to always make it the last route 
@@ -72,6 +81,47 @@ function analyzedInstructions(req,res){
     .catch((err)=>{
         console.log(err)
     })
+}
+
+function ingredientsAutocomplete(req, res){
+     let ingredientsName = "appl"
+    let url = `https://api.spoonacular.com/food/ingredients/autocomplete?query=${ingredientsName}&apiKey=${apikey}`;
+    axios.get(url)
+    .then((result)=>{
+        
+console.log(result)
+        res.json(result.data); 
+    })
+
+    .catch((err)=>{
+        console.log(err);
+    })
+
+}
+
+//DELETE Functions
+
+
+function deleteRecipes(req,res){
+    let {id} = req.body; 
+    let { userID } = req.body;
+    let sql=`DELETE FROM favorite_recipe WHERE id = $1 AND userID = $2 RETURNING *;`;
+    let value = [id,userID];
+    client.query(sql,value).then(result=>{
+         res.status(204).send("deleted");
+        res.json(result.rows)
+    }).catch()
+}
+
+function deleteIngredient(req,res){
+    let {id} = req.body; 
+    let { userID } = req.body;
+    let sql=`DELETE FROM favorite_ingredient WHERE id = $1 AND userID = $2 RETURNING *;`;
+    let value = [id,userID];
+    client.query(sql,value).then(result=>{
+        res.status(204).send("deleted");
+        res.json(result.rows)
+    }).catch()
 }
 
 function autoComplete(req,res){
@@ -166,6 +216,7 @@ req.body = [{"items": ["cheese", "flour", "tomato"], "number": 3}]
     })
 
 }
+
     }) 
     
     // send Parameters in body as JSON format    
@@ -214,9 +265,7 @@ function Recipe(title, time, image) {
       return params;  
     } 
     
-
-
-function formatDataToPattern(data) {
+    function formatDataToPattern(data) {
     const items = data[0].items.map((item, index) => {
       return index === 0 ? item : `+${item}`;
     }).join(",");
