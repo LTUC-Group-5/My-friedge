@@ -51,6 +51,7 @@ app.get('/recipeAnalyzedInstructions', analyzedInstructionsHandler);
 
 app.get('/autoCompleteIngredient', autoCompleteHandler); 
 
+app.get('/randomRecipes', randomRecipesHandler);
 
 
 //Error Handler Routes
@@ -228,6 +229,21 @@ function complexSearchHandler(req, res) {
         .catch((error) => {
             serverErrorHadnler(req, res, error);
         })
+}
+
+function randomRecipesHandler(req,res){
+    let url = `https://api.spoonacular.com/recipes/random?number=1&apiKey=${apikey}`
+
+    axios.get(url)
+    .then((result) => {
+
+        res.json(result.data);
+    })
+    .catch((error) => {
+        serverErrorHadnler(req, res, error);
+    })
+
+
 }
 
 //---API Functions---
